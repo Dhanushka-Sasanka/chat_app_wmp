@@ -34,7 +34,6 @@ export class AppComponent implements OnInit {
   }
 
   loadInitialChats() {
-    // let locationId: string = 'location-id-1';
     let locationId: string = 'location1';
     this.chatService.getChatsByLocation(locationId).subscribe((chats) => {
       this.chats = chats;
@@ -53,14 +52,6 @@ export class AppComponent implements OnInit {
 
 
   selectChat(chatId: string): void {
-    /* this.chatService.getMessagesByChat(chatId).subscribe((messages) => {
-       this.messages = messages;
-       this.selectedChat = this.chats.find(chat => chat.id === chatId) || null;
-     });*/
-    // const locationId = 'location1';
-    // const chatId = 'chat1';
-    // const locationId = 'location-id-1';
-    // const chatId = 'chat-id-1';
     this.selectChatId = chatId;
     this.chatService.getMessagesByChat(this.locationId, this.selectChatId, this.messagesPageSize).subscribe(messages => {
       this.selectedChatUser = messages[1]?.senderId;
@@ -75,7 +66,6 @@ export class AppComponent implements OnInit {
       this.scrollToBottom();
     });
 
-    // this.getAllLocations()
   }
 
   onScroll(event: any) {
@@ -97,37 +87,32 @@ export class AppComponent implements OnInit {
 
       this.chatService.getMessagesByChat(this.locationId, this.selectChatId, this.messagesPageSize, this.lastVisibleMessage).subscribe(messages => {
         if (messages.length > 0) {
-          this.messages = [...messages, ...this.messages];  // Prepend to the top
-          this.lastVisibleMessage = messages[messages.length - 1];  // Update last visible
+          this.messages = [...messages, ...this.messages];
+          this.lastVisibleMessage = messages[messages.length - 1];
 
           if (messages.length < 10) {
             this.hasMoreMessages = false;
           }
         } else {
-          this.hasMoreMessages = false;  // No more messages
+          this.hasMoreMessages = false;
         }
-
         this.loadingMoreMessages = false;
       });
     } else if (direction === 'down') {
       if (this.loadingNewMessages) {
         return;
       }
-
       this.loadingNewMessages = true;
 
       this.chatService.getMessagesByChat(this.locationId, this.selectChatId, this.messagesPageSize, undefined, this.firstVisibleMessage).subscribe(messages => {
         if (messages.length > 0) {
-          this.messages = [...this.messages, ...messages];  // Append to the bottom
-          this.firstVisibleMessage = messages[0];  // Update first visible
+          this.messages = [...this.messages, ...messages];
+          this.firstVisibleMessage = messages[0];
         }
-
         this.loadingNewMessages = false;
       });
     }
-
   }
-
 
   sendMessage() {
 
@@ -135,7 +120,6 @@ export class AppComponent implements OnInit {
 
     if (this.newMessage.trim()) {
       this.chatService.sendMessage(this.locationId, this.selectChatId, this.newMessage, this.currentLoggedUser)
-      // this.chatService.sendMessage(this.locationId, chatId, this.newMessage, this.currentLoggedUser)
         .then(() => {
           this.newMessage = '';
         })

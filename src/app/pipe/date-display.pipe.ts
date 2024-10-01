@@ -1,6 +1,6 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import {Pipe, PipeTransform} from '@angular/core';
 import {DatePipe} from "@angular/common";
-import {Timestamp } from "@angular/fire/firestore";
+import {Timestamp} from "@angular/fire/firestore";
 
 
 @Pipe({
@@ -8,11 +8,12 @@ import {Timestamp } from "@angular/fire/firestore";
 })
 export class DateDisplayPipe implements PipeTransform {
 
-  constructor(private datePipe: DatePipe) {}
+  constructor(private datePipe: DatePipe) {
+  }
 
 
   transform(value: Timestamp | undefined): string {
-    return this.datePipe.transform(value?.toMillis() , 'short') ?? '';
+    return this.datePipe.transform(value?.toMillis(), 'short') ?? '';
   }
 
 }
