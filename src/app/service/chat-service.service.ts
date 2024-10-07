@@ -3,7 +3,7 @@ import {Observable} from "rxjs";
 import {Chat, Location, Message, User} from "../model/models";
 import {
   addDoc,
-  collection,
+  collection, collectionData,
   doc,
   Firestore,
   getDoc,
@@ -31,8 +31,7 @@ export class ChatServiceService {
   ]
   locationId: string = 'location1';
 
-  constructor(private firestore: Firestore) {
-  }
+  constructor(private firestore: Firestore) {}
 
   getAllChatsWithLatestMessage(): Observable<Chat[]> {
     return new Observable((observer) => {
@@ -81,10 +80,10 @@ export class ChatServiceService {
     try {
       const chatsRef = collection(this.firestore, `locations/${locationId}/chats`);
 
-
+      console.log(chatId);
       let chatRef;
       if (!chatId) {
-
+        console.log("1");
         const newChat: Partial<Chat> = {
           createdAt: Timestamp.now(),
           locationId: locationId,
@@ -100,11 +99,12 @@ export class ChatServiceService {
         chatId = chatDocRef.id;
         chatRef = chatDocRef;
       } else {
-
+        console.log("2");
         chatRef = doc(this.firestore, `locations/${locationId}/chats/${chatId}`);
         const chatSnapshot = await getDoc(chatRef);
         if (!chatSnapshot.exists()) {
           const newChat: Partial<Chat> = {
+            id: chatId,
             createdAt: Timestamp.now(),
             locationId: locationId,
             chatUser: sender,
@@ -130,9 +130,9 @@ export class ChatServiceService {
 
 
       const messageDocRef = await addDoc(messagesRef, newMessage);
-      newMessage.id = messageDocRef.id;
 
       const latestMessageUpdate: Partial<Chat> = {
+        id: chatId,
         latestMessage: {
           content: newMessage.content,
           timestamp: newMessage.timestamp,
@@ -142,6 +142,12 @@ export class ChatServiceService {
 
 
       await updateDoc(chatRef, latestMessageUpdate);
+
+      const messageIdUpdate: Partial<Message> = {
+        id: messageDocRef.id
+      };
+
+      await updateDoc(messageDocRef, messageIdUpdate);
 
       console.log('Message sent successfully:', newMessage.id);
     } catch (error) {
@@ -187,7 +193,7 @@ export class ChatServiceService {
           const message = doc.data() as Message;
           message.id = doc.id;
           if (!message.readStatus) {
-            this.markMessageAsRead(locationId, chatId, message.id);
+            this.markMessageAsRead(locationId, chatId, message.id).then(r => {});
           }
           messagesList.push(message);
         });
@@ -285,6 +291,85 @@ export class ChatServiceService {
     });
 
   }
+
+  // Method to search messages by content
+  async searchMessages(searchTerm: string): Promise<Message[]> {
+
+    console.log("search",searchTerm);
+    const messagesCollection = collection(this.firestore, 'messages');
+    const messagesQuery = query(messagesCollection, where('readStatus', '==', true));
+
+    // where('content', '<=', searchTerm + '\uf8ff')
+
+    console.log(messagesCollection);
+    console.log(messagesQuery);
+    const querySnapshot = await getDocs(messagesQuery);
+    const foundMessages: Message[] = [];
+    console.log(querySnapshot);
+
+    querySnapshot.forEach((doc) => {
+      console.log(doc.data());
+      foundMessages.push(doc.data() as Message);
+    });
+    console.log('foundMessages',foundMessages);
+    return foundMessages;
+  }
+
+
+  // Method to search messages by content and get corresponding chats
+  async searchChatsByMessageContent(searchTerm: string): Promise<Chat[]> {
+    const foundMessages = await this.searchMessages(searchTerm);
+
+    const chatIds = new Set<string>();
+    foundMessages.forEach((message) => {
+      chatIds.add(message.id);
+    });
+
+    const chats: Chat[] = [];
+    for (const chatId of chatIds) {
+      const chatDoc = await getDoc(doc(this.firestore, 'chats', chatId));
+      if (chatDoc.exists()) {
+        chats.push(chatDoc.data() as Chat);
+      }
+    }
+
+    return chats;
+  }
+
+
+  async searchChatsByUserName(searchTerm: string): Promise<Chat[]> {
+    const chatsCollection = collection(this.firestore, 'locations/location1/chats');
+
+    const chatsQuery = query(chatsCollection, where('chatUser.name', '>=', searchTerm),
+      where('chatUser.name', '<=', searchTerm + '\uf8ff'));
+
+    const querySnapshot = await getDocs(chatsQuery);
+    const foundChats: Chat[] = [];
+
+    querySnapshot.forEach((doc) => {
+      foundChats.push(doc.data() as Chat);
+    });
+
+    return foundChats;
+  }
+
+
+  async searchMessagesInChat(chatId: string,locationId: string, searchTerm: string): Promise<Message[]> {
+    const messagesCollection = collection(this.firestore, `locations/${locationId}/chats/${chatId}/messages`);
+    console.log(locationId, chatId,searchTerm)
+    const messagesQuery = query(messagesCollection, where('content', '>=', searchTerm),
+      where('content', '<=', searchTerm + '\uf8ff'));
+
+    const querySnapshot = await getDocs(messagesQuery);
+    const foundMessages: Message[] = [];
+
+    querySnapshot.forEach((doc) => {
+      foundMessages.push(doc.data() as Message);
+    });
+
+    return foundMessages;
+  }
+
 
 }
 

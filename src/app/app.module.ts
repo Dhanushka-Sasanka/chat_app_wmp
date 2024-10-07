@@ -4,6 +4,8 @@ import {BrowserModule} from '@angular/platform-browser';
 import {AppRoutingModule} from './app-routing.module';
 import {AppComponent} from './app.component';
 import {environment} from "../environments/environment";
+
+
 import {AngularFirestore} from "@angular/fire/compat/firestore";
 import {FormsModule} from "@angular/forms";
 import {getFirestore, provideFirestore} from "@angular/fire/firestore";
@@ -20,11 +22,9 @@ import {DatePipe} from "@angular/common";
     BrowserModule,
     AppRoutingModule,
     FormsModule,
-
-
   ],
   providers: [
-    AngularFirestore,
+    // AngularFirestore,
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideFirestore(() => getFirestore()),
     DatePipe

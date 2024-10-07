@@ -1,4 +1,4 @@
-import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
+import {Component, ElementRef, OnInit, QueryList, ViewChild, ViewChildren} from '@angular/core';
 import {ChatServiceService} from "./service/chat-service.service";
 import {Chat, Message, User} from "./model/models";
 
@@ -25,6 +25,11 @@ export class AppComponent implements OnInit {
   messagesPageSize: number = 10;
 
   @ViewChild('messageContainer') messageContainer!: ElementRef;
+  @ViewChildren('messageElement') messageElements!: QueryList<ElementRef>;
+  searchChatTerm: string = '';
+  searchMessageTerm: string = '';
+  foundChats: Chat[] = [];
+  foundMessages: Message[] = [];
 
   constructor(private chatService: ChatServiceService) {
   }
@@ -34,8 +39,8 @@ export class AppComponent implements OnInit {
   }
 
   loadInitialChats() {
-    let locationId: string = 'location1';
-    this.chatService.getChatsByLocation(locationId).subscribe((chats) => {
+
+    this.chatService.getChatsByLocation(this.locationId).subscribe((chats) => {
       this.chats = chats;
       console.log('Chats with IDs:', chats);
 
@@ -49,7 +54,6 @@ export class AppComponent implements OnInit {
     });
     console.log(this.chats);
   }
-
 
   selectChat(chatId: string): void {
     this.selectChatId = chatId;
@@ -129,7 +133,6 @@ export class AppComponent implements OnInit {
     }
   }
 
-
   getChatsForLocation() {
     this.chatService.getChatsByLocation(this.locationId).subscribe(chats => {
       console.log(chats);
@@ -150,6 +153,46 @@ export class AppComponent implements OnInit {
       }, 0);
     } catch (err) {
       console.error('Scroll error:', err);
+    }
+  }
+
+  async onChatSearch(): Promise<void> {
+    console.log(this.searchChatTerm);
+    if (this.searchChatTerm.trim()) {
+      // this.foundChats = await this.chatService.searchChatsByMessageContent(this.searchTerm);
+      this.foundChats = await this.chatService.searchChatsByUserName(this.searchChatTerm);
+      console.log(this.foundChats);
+      if (this.foundChats.length > 0) {
+        this.selectChat(this.foundChats[0].id);
+      }
+    }
+  }
+
+  async onMessageSearch(): Promise<void> {
+    console.log(this.searchMessageTerm);
+    if (this.searchMessageTerm.trim()) {
+      this.foundMessages = await this.chatService.searchMessagesInChat(this.selectChatId , this.locationId, this.searchMessageTerm );
+      console.log(this.foundMessages);
+      if (this.foundMessages.length > 0) {
+        this.messages = this.foundMessages; // Update the displayed messages if you want
+        this.scrollToMessage(this.foundMessages[0].id); // Scroll to the first found message
+      } else {
+        console.log('No messages found matching the search term.');
+      }
+    }
+  }
+
+  scrollToMessage(messageId: string): void {
+    const targetMessage = this.messageElements.find(
+      (message) => message.nativeElement.id === messageId
+    );
+
+    if (targetMessage) {
+      targetMessage.nativeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      targetMessage.nativeElement.classList.add('highlighted'); // Add a highlight class
+      setTimeout(() => {
+        targetMessage.nativeElement.classList.remove('highlighted'); // Remove highlight after 2 seconds
+      }, 2000);
     }
   }
 

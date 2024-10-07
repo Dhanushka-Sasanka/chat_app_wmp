@@ -30,10 +30,12 @@
               <div class="modal-content">
                 <div class="chat-header">
                   <div class="msg-search">
-                    <input aria-label="search" class="form-control" id="inlineFormInputGroup" placeholder="Search"
+                    <input [(ngModel)]="searchChatTerm" aria-label="search" class="form-control"
+                           id="inlineFormInputGroup" placeholder="Search Chats"
                            type="text">
-                    <a class="add" href="#"><img alt="add" class="img-fluid"
-                                                 src="https://mehedihtml.com/chatbox/assets/img/add.svg"></a>
+                    <a (click)="onChatSearch()"><img alt="add" class="img-fluid" src="https://mehedihtml.com/chatbox/assets/img/search.svg"
+                                                     style="width: 30px; height: 30px"></a>
+
                   </div>
 
                   <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -42,11 +44,11 @@
                               data-bs-toggle="tab" id="Open-tab" role="tab" type="button">Open
                       </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                      <button aria-controls="Closed" aria-selected="false" class="nav-link" data-bs-target="#Closed"
-                              data-bs-toggle="tab" id="Closed-tab" role="tab" type="button">Closed
-                      </button>
-                    </li>
+                    <!--                    <li class="nav-item" role="presentation">-->
+                    <!--                      <button aria-controls="Closed" aria-selected="false" class="nav-link" data-bs-target="#Closed"-->
+                    <!--                              data-bs-toggle="tab" id="Closed-tab" role="tab" type="button">Closed-->
+                    <!--                      </button>-->
+                    <!--                    </li>-->
                   </ul>
                 </div>
 
@@ -57,20 +59,43 @@
                       <div aria-labelledby="Open-tab" class="tab-pane fade show active" id="Open" role="tabpanel">
                         <!-- chat-list -->
                         <div class="chat-list">
-                          <a (click)="selectChat(chat.id)" *ngFor="let chat of chats" class="d-flex align-items-center"
-                             href="#">
-                            <div class="flex-shrink-0">
-                              <img [src]="chat?.chatUser?.avatar"
-                                   alt="user img"
-                                   class="img-fluid">
-                              <span class="active"></span>
-                            </div>
-                            <div class="flex-grow-1 ms-3">
-                              <h3>{{ chat?.chatUser?.name }}</h3>
-                              <p>{{ chat?.latestMessage?.content }}</p>
-                              <p>{{ chat?.unreadCount }}</p>
-                            </div>
-                          </a>
+
+
+                          <div *ngIf="foundChats.length > 0">
+                            <a (click)="selectChat(chat.id)" *ngFor="let chat of foundChats"
+                               class="d-flex align-items-center"
+                               href="#">
+                              <div class="flex-shrink-0">
+                                <img [src]="chat?.chatUser?.avatar"
+                                     alt="user img"
+                                     class="img-fluid">
+                                <span class="active"></span>
+                              </div>
+                              <div class="flex-grow-1 ms-3">
+                                <h3>{{ chat?.chatUser?.name }}</h3>
+                                <p>{{ chat?.latestMessage?.content }}</p>
+                                <p>{{ chat?.unreadCount }}</p>
+                              </div>
+                            </a>
+                          </div>
+                          <div *ngIf="foundChats.length == 0">
+                            <a (click)="selectChat(chat.id)" *ngFor="let chat of chats"
+                               class="d-flex align-items-center"
+                               href="#">
+                              <div class="flex-shrink-0">
+                                <img [src]="chat?.chatUser?.avatar"
+                                     alt="user img"
+                                     class="img-fluid">
+                                <span class="active"></span>
+                              </div>
+                              <div class="flex-grow-1 ms-3">
+                                <h3>{{ chat?.chatUser?.name }}</h3>
+                                <p>{{ chat?.latestMessage?.content }}</p>
+                                <p>{{ chat?.unreadCount }}</p>
+                              </div>
+                            </a>
+                          </div>
+
                         </div>
 
                       </div>
@@ -90,7 +115,7 @@
               <div class="modal-content">
                 <div class="msg-head">
                   <div class="row">
-                    <div class="col-8">
+                    <div class="col-6">
                       <div class="d-flex align-items-center">
                         <span class="chat-icon"><img alt="image title" class="img-fluid"
                                                      src=""></span>
@@ -104,25 +129,19 @@
                           <h3>{{ selectedChatUser?.name }}</h3>
 
                         </div>
+
+
                       </div>
                     </div>
-                    <div class="col-4">
-                      <ul class="moreoption">
-                        <li class="navbar nav-item dropdown">
-                          <a aria-expanded="false" class="nav-link dropdown-toggle"
-                             data-bs-toggle="dropdown"
-                             href="#"
-                             role="button"><i aria-hidden="true" class="fa fa-ellipsis-v"></i></a>
-                          <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li>
-                              <hr class="dropdown-divider">
-                            </li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                          </ul>
-                        </li>
-                      </ul>
+                    <div class="col-6">
+                      <div class="msg-search">
+                        <input [(ngModel)]="searchMessageTerm" aria-label="search" class="form-control"
+                               placeholder="Search Messages"
+                               type="text">
+                        <a (click)="onMessageSearch()"><img alt="add" class="img-fluid"
+                                                            src="https://mehedihtml.com/chatbox/assets/img/search.svg"
+                                                            style="width: 30px; height: 30px"></a>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -130,6 +149,11 @@
                 <div #messageContainer (scroll)="onScroll($event)" class="modal-body">
                   <div class="msg-body">
 
+                    <!--<div *ngIf="foundMessages.length > 0">
+                      <div #messageElement *ngFor="let message of messages" [attr.id]="message.id">
+                        <div class="message-content">{{ message.content }}</div>
+                      </div>
+                    </div>-->
 
                     <ul>
                       <li *ngFor="let message of messages"
